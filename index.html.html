@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aminosäuren-Trainer</title>
+<style>
+:root{--bg:#eef1f4;--fg:#14202e;--mu:#5d6b7a;--cd:#fff;--bd:#cfd6dd;--ac:#1f5fbf;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#10151b;--fg:#e6ebf0;--mu:#93a0ae;--cd:#192029;--bd:#2d3844;--ac:#7fb0ff;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 "Segoe UI",system-ui,sans-serif}
+header{padding:18px 22px 0;max-width:1200px;margin:auto}h1{margin:0 0 10px;font:700 24px Georgia,serif}
+nav{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--bd)}
+nav button{border:0;background:none;color:var(--mu);padding:9px 14px;font:inherit;cursor:pointer;border-bottom:3px solid transparent}
+nav button.on{color:var(--fg);border-color:var(--ac);font-weight:600}
+main{max-width:1200px;margin:auto;padding:18px 22px 40px}section{display:none}section.on{display:block}
+button,select{font:inherit;color:var(--fg)}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.two{display:grid;grid-template-columns:minmax(280px,1fr) minmax(340px,1.3fr);gap:22px}@media(max-width:820px){.two{grid-template-columns:1fr}}
+.flt{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}select{background:var(--cd);border:1px solid var(--bd);padding:6px 8px;border-radius:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.card{background:var(--cd);border:1px solid var(--bd);border-left-width:6px;border-radius:6px;padding:7px 9px;text-align:left;cursor:pointer;transition:opacity .15s}
+.card b{display:block}.card small{color:var(--mu)}.card.sel{outline:2px solid var(--ac)}
+.panel{background:var(--cd);border:1px solid var(--bd);border-radius:8px;padding:16px 18px}
+h2{margin:0 0 8px;font:700 21px Georgia,serif}h2 small{font:400 14px system-ui;color:var(--mu)}
+.fig{background:var(--bg);border-radius:6px;padding:6px;margin:8px 0}
+svg{display:block;margin:auto;color:var(--fg);width:100%}
+svg line{stroke:currentColor;stroke-width:2;stroke-linecap:round}svg polygon{fill:currentColor}
+svg text{font:600 15px system-ui;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:var(--bg);stroke-width:5px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.mu{color:var(--mu);font-size:13px;margin:6px 0}
+.tag{display:inline-block;color:#fff;background:#566;border-radius:4px;padding:1px 8px;margin:2px 4px 2px 0;font-size:13px}
+.btn{background:var(--ac);color:var(--bg);border:0;border-radius:6px;padding:6px 12px;cursor:pointer}
+table{border-collapse:collapse;width:100%}td,th{padding:5px 8px;border-bottom:1px solid var(--bd);text-align:left}th{color:var(--mu);font-weight:600;font-size:13px}
+.pk td:last-child{font-variant-numeric:tabular-nums;font-weight:600}tbody tr{cursor:pointer}tbody tr:hover{background:var(--bg)}
+.kd{height:10px;border-radius:5px;background:linear-gradient(90deg,#2f8fd8,#ccd,#e08a2e);position:relative;margin:6px 0 2px}
+.kd i{position:absolute;top:-4px;width:4px;height:18px;background:var(--fg);border-radius:2px}
+.kdl{display:flex;justify-content:space-between;color:var(--mu);font-size:12px}
+input[type=range]{width:100%}.big{font:700 20px Georgia,serif}
+.gl{display:flex;flex-direction:column;gap:6px}.gl button{background:var(--cd);border:1px solid var(--bd);border-radius:6px;padding:9px 12px;text-align:left;cursor:pointer;display:flex;justify-content:space-between}
+.gl button.on{border-color:var(--ac);outline:1px solid var(--ac)}.gl small{color:var(--mu)}
+.vs{display:flex;gap:10px;flex-wrap:wrap}.vs figure{margin:0;flex:1 1 200px;background:var(--bg);border-radius:6px;padding:8px;transition:opacity .2s}
+figcaption{text-align:center;font-size:13px;color:var(--mu)}li{margin:4px 0}
+a.ch{display:inline-block;border:1px solid var(--bd);border-radius:14px;padding:1px 10px;margin:2px;color:var(--ac);text-decoration:none}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.opts button{background:var(--cd);border:1px solid var(--bd);border-radius:6px;padding:10px;cursor:pointer}
+.opts button.ok{background:#1c9a5a;color:#fff}.opts button.no{background:#c8382e;color:#fff}
+</style></head><body>
+<header><h1>Aminosäuren-Trainer</h1>
+<nav><button data-t="A" class="on">Aminosäuren</button><button data-t="T">Tabelle</button><button data-t="G">Funktionelle Gruppen</button><button data-t="Q">Quiz</button></nav></header>
+<main>
+<section id="A" class="on"><div class="flt">
+<select id="f1"><option value="">Alle Klassen</option></select>
+<select id="f2"><option value="">Hydrophobie: alle</option><option>hydrophob</option><option>mittel / amphiphil</option><option>hydrophil</option></select>
+<select id="f3"><option value="">Aromatisch + aliphatisch</option><option value="1">nur aromatisch</option><option value="0">nur aliphatisch</option></select></div>
+<div class="two"><div class="grid" id="grid"></div><div class="panel" id="det"></div></div></section>
+<section id="T"><div class="panel" style="overflow:auto"><table id="tb"></table></div>
+<p class="mu">KD = Hydropathie-Index nach Kyte &amp; Doolittle (positiv = hydrophob). pKa-Werte nach Lehninger (25 °C, freie AS); in Proteinen verschieben sie sich je nach Umgebung. Klick auf eine Zeile öffnet die Struktur.</p></section>
+<section id="G"><div class="two" style="grid-template-columns:minmax(200px,.5fr) 2fr"><div class="gl" id="gl"></div><div class="panel" id="gd"></div></div></section>
+<section id="Q"><div class="panel" style="max-width:560px"><div class="row"><b>Welche Aminosäure ist das?</b><span id="sc" class="mu"></span></div><div id="q"></div></div></section>
+</main>
+<script>
+const $=s=>document.querySelector(s),L=38;
+const CL={u:['unpolar, aliphatisch','#6b7b8c'],a:['aromatisch','#8e4fc4'],p:['polar, ungeladen','#0f9a8f'],s:['sauer (negativ)','#d8402f'],b:['basisch (positiv)','#2a68d8']};
+const PH=[[0,90],[1,30],[2,-30,'',2],[3,30],[4,90,'',2],[5,150],[6,210,'',2]],PHC=[[7,2]];
+const TRP=[[0,90],[1,30],[2,336,'',2],[3,48,'NH'],[4,120],[5,192,'',2],[6,132],[7,72,'',2],[8,12],[9,312,'',2]],TRPC=[[10,5],[6,2]];
+const IMI=l=>[[0,30],[1,336,'',2],[2,48,'NH'],[3,120],[4,192,l,2]];
+// 0 Name,1 3-Buchst.,2 1-Buchst.,3 Klasse,4 aromatisch,5 KD,6 pKa COOH,7 pKa NH3+,8 pKa Seitenkette,9 pI,10 Notiz,11 Atome,12 Ringschlüsse
+const A=[
+['Glycin','Gly','G','u',0,-0.4,2.34,9.60,null,5.97,'Einzige achirale AS (R = H); kleinste, sehr flexibel (Kollagen, Turns).',[],[]],
+['Alanin','Ala','A','u',0,1.8,2.34,9.69,null,6.01,'Kleine Methylgruppe; guter α-Helix-Bildner.',[[0,90]],[]],
+['Valin','Val','V','u',0,4.2,2.32,9.62,null,5.97,'Β-verzweigt, bevorzugt β-Faltblätter; essenziell.',[[0,90],[1,30],[1,150]],[]],
+['Leucin','Leu','L','u',0,3.8,2.36,9.60,null,5.98,'Isobutylrest; Leucin-Zipper; essenziell, rein ketogen.',[[0,90],[1,30],[2,-30],[2,90]],[]],
+['Isoleucin','Ile','I','u',0,4.5,2.36,9.68,null,6.02,'Zwei Stereozentren (Cα und Cβ); essenziell; höchster KD-Wert.',[[0,90],[1,30],[1,150],[2,-30]],[]],
+['Prolin','Pro','P','u',0,-1.6,1.99,10.96,null,6.48,'Sekundäres Amin (Iminosäure), Ring über N; Helix-Brecher, cis/trans-Isomerie.',[[0,90],[1,150],[2,210]],[[3,'N']]],
+['Methionin','Met','M','u',0,1.9,2.28,9.21,null,5.74,'Thioether; Start-AS (AUG); Vorstufe von SAM; essenziell.',[[0,90],[1,30],[2,-30,'S'],[3,30]],[]],
+['Phenylalanin','Phe','F','a',1,2.8,1.83,9.13,null,5.48,'Benzylrest; UV ≈ 258 nm; Vorstufe von Tyr; essenziell.',PH,PHC],
+['Tryptophan','Trp','W','a',1,-0.9,2.38,9.39,null,5.89,'Indolrest, größte AS; UV 280 nm, Fluoreszenz; Vorstufe von Serotonin. (KD unterschätzt die Unpolarität.)',TRP,TRPC],
+['Serin','Ser','S','p',0,-0.8,2.21,9.15,null,5.68,'Primäre OH-Gruppe (pKa ≈ 13); Phosphorylierung, katalytische Triade.',[[0,90],[1,30,'OH']],[]],
+['Threonin','Thr','T','p',0,-0.7,2.63,10.43,null,5.87,'Sekundäre OH-Gruppe; zweites Stereozentrum; Phosphorylierung; essenziell.',[[0,90],[1,30,'OH'],[1,150]],[]],
+['Cystein','Cys','C','p',0,2.5,1.96,10.28,8.18,5.07,'Thiol (SH); Disulfidbrücken. Als L-AS (R)-konfiguriert, weil CH₂SH höhere CIP-Priorität hat als COOH.',[[0,90],[1,30,'SH']],[]],
+['Tyrosin','Tyr','Y','a',1,-1.3,2.20,9.11,10.07,5.66,'Phenol-OH (pKa ≈ 10); Phosphorylierung; UV ≈ 275 nm.',PH.concat([[5,30,'OH']]),PHC],
+['Asparagin','Asn','N','p',0,-3.5,2.02,8.80,null,5.41,'Seitenketten-Amid; N-Glykosylierung (N-X-S/T).',[[0,90],[1,30],[2,-30,'O',2],[2,90,'NH₂']],[]],
+['Glutamin','Gln','Q','p',0,-3.5,2.17,9.13,null,5.65,'Seitenketten-Amid; N-Transport, häufigste freie AS im Blut.',[[0,90],[1,30],[2,90],[3,150,'O',2],[3,30,'NH₂']],[]],
+['Asparaginsäure','Asp','D','s',0,-3.5,1.88,9.60,3.65,2.77,'Saure Seitenkette (als Aspartat negativ); Salzbrücken, Säure-Base-Katalyse.',[[0,90],[1,30],[2,-30,'O',2],[2,90,'OH']],[]],
+['Glutaminsäure','Glu','E','s',0,-3.5,2.19,9.67,4.25,3.22,'Saure Seitenkette (Glutamat); wichtiger Neurotransmitter.',[[0,90],[1,30],[2,90],[3,150,'O',2],[3,30,'OH']],[]],
+['Lysin','Lys','K','b',0,-3.9,2.18,8.95,10.53,9.74,'ε-Aminogruppe (bei pH 7 NH₃⁺); Acetylierung, Ubiquitinierung; essenziell.',[[0,90],[1,30],[2,-30],[3,30],[4,-30,'NH₂']],[]],
+['Arginin','Arg','R','b',0,-4.5,2.17,9.04,12.48,10.76,'Guanidinium; stärkste Base unter den AS; bindet Phosphat (DNA).',[[0,90],[1,30],[2,-30],[3,30,'NH'],[4,-30],[5,30,'NH₂'],[5,270,'NH',2]],[]],
+['Histidin','His','H','b',1,-3.2,1.82,9.17,6.00,7.59,'Imidazol, pKa ≈ 6: Puffer bei pH 7; Säure-Base-Katalyse, Zn-Ligand.',[[0,90],[1,30],[2,336,'',2],[3,48,'NH'],[4,120],[5,192,'N',2]],[[6,2]]]];
+const hyd=k=>k>=1.5?'hydrophob':k<=-2?'hydrophil':'mittel / amphiphil';
+const fm=x=>String(x).replace('.',',');
+const stc=(c,d)=>c=='G'?'achiral':c=='I'?(d?'(2R,3S)':'(2S,3S)'):c=='T'?(d?'(2R,3R)':'(2S,3R)'):c=='C'?(d?'S':'R'):(d?'R':'S');
+const chg=(a,h)=>{let c=1/(1+10**(h-a[7]))-1/(1+10**(a[6]-h));if(a[8]!=null)c+='DECY'.includes(a[2])?-1/(1+10**(a[8]-h)):1/(1+10**(h-a[8]));return c};
+
+// ---------- Strukturformel-Zeichner ----------
+function draw(s,o={}){
+ const P=[[0,0]];s.a.forEach(([p,a])=>{const r=a*Math.PI/180;P.push([P[p][0]+L*Math.cos(r),P[p][1]+L*Math.sin(r)])});
+ const pt=i=>i=='N'?[-L,0]:P[i];let g='',t='',all=[...P];
+ const col=l=>/^[HN]/.test(l)?'#2a68d8':l[0]=='O'||l=='COOH'?'#d8402f':l[0]=='S'?'#b07d00':'currentColor';
+ const tx=(p,l,c)=>t+=`<text x="${p[0]}" y="${p[1]}" fill="${c||col(l)}">${l}</text>`;
+ const ln=(p,q,n)=>{const dx=q[0]-p[0],dy=q[1]-p[1],d=Math.hypot(dx,dy),nx=-dy/d*2.6,ny=dx/d*2.6;
+  return n==2?`<line x1="${p[0]+nx}" y1="${p[1]+ny}" x2="${q[0]+nx}" y2="${q[1]+ny}"/><line x1="${p[0]-nx}" y1="${p[1]-ny}" x2="${q[0]-nx}" y2="${q[1]-ny}"/>`:`<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}"/>`};
+ const wedge=(p,q)=>{const dx=q[0]-p[0],dy=q[1]-p[1],d=Math.hypot(dx,dy),nx=-dy/d*5,ny=dx/d*5;return `<polygon points="${p[0]},${p[1]} ${q[0]+nx},${q[1]+ny} ${q[0]-nx},${q[1]-ny}"/>`};
+ const hash=(p,q)=>{let r='';const dx=q[0]-p[0],dy=q[1]-p[1],d=Math.hypot(dx,dy);for(let i=1;i<=6;i++){const u=i/6,x=p[0]+dx*u,y=p[1]+dy*u,nx=-dy/d*u*5,ny=dx/d*u*5;r+=`<line x1="${x-nx}" y1="${y-ny}" x2="${x+nx}" y2="${y+ny}" style="stroke-width:1.6"/>`}return r};
+ s.a.forEach(([p,,,k],i)=>{if(!(s.bb&&i==0))g+=ln(P[p],P[i+1],k||1)});
+ (s.c||[]).forEach(([i,j,k])=>g+=ln(pt(i),pt(j),k||1));
+ s.a.forEach(([,,l],i)=>l&&tx(P[i+1],l));if(s.r)tx(P[0],s.r);
+ if(s.bb){const N=[-L,0],C=[L,0],H=[0,-.8*L];all.push(N,C,H);g+=ln(P[0],N,1)+ln(P[0],C,1);
+  if(!s.a.length){const H2=[0,.8*L];all.push(H2);g+=ln(P[0],H,1)+ln(P[0],H2,1);tx(H2,'H','currentColor')}
+  else g+=o.D?wedge(P[0],P[1])+hash(P[0],H):hash(P[0],P[1])+wedge(P[0],H);
+  tx(N,s.pro?'HN':'H₂N');tx(C,'COOH');tx(H,'H','currentColor')}
+ const xs=all.map(p=>p[0]),ys=all.map(p=>p[1]),x0=Math.min(...xs)-34,y0=Math.min(...ys)-26,w=Math.max(...xs)+34-x0,h=Math.max(...ys)+26-y0;
+ return `<svg viewBox="${x0} ${y0} ${w} ${h}" style="max-width:${Math.min(w*1.6,520)}px;max-height:${o.mh||340}px">${g}${t}</svg>`}
+const bb=a=>({a:a[11],c:a[12],bb:1,pro:a[2]=='P'});
+
+// ---------- Tab Aminosäuren ----------
+let sel=0,D=0,pH=7;
+Object.values(CL).forEach((v,i)=>$('#f1').add(new Option(v[0],Object.keys(CL)[i])));
+function grid(){const f=[$('#f1').value,$('#f2').value,$('#f3').value];
+ $('#grid').innerHTML=A.map((a,i)=>{const ok=(!f[0]||a[3]==f[0])&&(!f[1]||hyd(a[5])==f[1])&&(f[2]===''||a[4]==f[2]);
+  return `<button class="card${i==sel?' sel':''}" style="border-left-color:${CL[a[3]][1]};opacity:${ok?1:.22}" onclick="sel=${i};D=0;grid();det()"><b>${a[0]}</b><small>${a[1]} · ${a[2]}</small></button>`}).join('')}
+['f1','f2','f3'].forEach(i=>$('#'+i).onchange=grid);
+function upd(){const a=A[sel],c=chg(a,pH);$('#chg').innerHTML=`Nettoladung bei pH ${fm(pH.toFixed(1))}: <span class="big" style="color:${c>.1?'#2a68d8':c<-.1?'#d8402f':'inherit'}">${c>0?'+':''}${fm(c.toFixed(2))}</span> <span class="mu">(pI = ${fm(a[9])}: dort ≈ 0)</span>`}
+function det(){const a=A[sel],k=CL[a[3]];
+ $('#det').innerHTML=`<h2 style="border-left:6px solid ${k[1]};padding-left:10px">${a[0]} <small>${a[1]} · ${a[2]}</small></h2>
+ <div class="fig">${draw(bb(a),{D})}</div>
+ <div class="row"><button class="btn" onclick="D=1-D;det()">${D?'D':'L'}-Form → ${D?'L':'D'}-Form zeigen</button><span>${D?'D':'L'}-${a[0]}: <b>${stc(a[2],D)}</b></span></div>
+ <p class="mu">Keil = zum Betrachter, gestrichelt = vom Betrachter weg. L-Form: H auf dem Keil, wenn H₂N links, COOH rechts und R unten stehen. Cβ-Stereozentren (Ile, Thr) sind hier nicht eingezeichnet.</p>
+ <span class="tag" style="background:${k[1]}">${k[0]}</span><span class="tag">${hyd(a[5])}</span><span class="tag">${a[4]?'aromatisch':'aliphatisch'}</span>
+ <div class="kd"><i style="left:calc(${(a[5]+4.5)/9*100}% - 2px)"></i></div><div class="kdl"><span>hydrophil −4,5</span><span>KD = ${fm(a[5])}</span><span>+4,5 hydrophob</span></div>
+ <table class="pk" style="margin-top:10px"><tr><td>pKa α-COOH</td><td>${fm(a[6])}</td></tr><tr><td>pKa α-NH₃⁺</td><td>${fm(a[7])}</td></tr>
+ ${a[8]!=null?`<tr><td>pKa Seitenkette (${'DECY'.includes(a[2])?'Säure':'Base'})</td><td>${fm(a[8])}</td></tr>`:''}<tr><td>Isoelektrischer Punkt pI</td><td>${fm(a[9])}</td></tr></table>
+ <p style="margin:10px 0 2px"><label>pH <input type="range" min="0" max="14" step=".1" value="${pH}" oninput="pH=+this.value;upd()"></label></p><div id="chg"></div>
+ <p>${a[10]}</p>`;upd()}
+
+// ---------- Tab Tabelle ----------
+$('#tb').innerHTML='<thead><tr><th>Name</th><th>3/1</th><th>Klasse</th><th>Hydrophobie</th><th>Ring</th><th>KD</th><th>pKa COOH</th><th>pKa NH₃⁺</th><th>pKa R</th><th>pI</th></tr></thead><tbody>'+
+ A.map((a,i)=>`<tr onclick="go(${i})"><td style="border-left:6px solid ${CL[a[3]][1]}"><b>${a[0]}</b></td><td>${a[1]} / ${a[2]}</td><td>${CL[a[3]][0]}</td><td>${hyd(a[5])}</td><td>${a[4]?'aromatisch':'aliphatisch'}</td><td>${fm(a[5])}</td><td>${fm(a[6])}</td><td>${fm(a[7])}</td><td>${a[8]!=null?fm(a[8]):'–'}</td><td>${fm(a[9])}</td></tr>`).join('')+'</tbody>';
+function go(i){sel=i;D=0;show('A');grid();det()}
+
+// ---------- Tab Funktionelle Gruppen ----------
+const TY=l=>PH.concat([[5,30,l]]);
+const G=[
+{n:'Guanidinium',s:'Arg',aa:'R',pk:12.48,d:['Positive Ladung über drei N und das zentrale C delokalisiert (Resonanz); planar, Y-förmig.','pKa ≈ 12,5: bei jedem physiologischen pH protoniert (+).','Bis zu fünf H-Brücken-Donoren: bindet Phosphat und Carboxylat (Salzbrücken, DNA/RNA, Phosphoproteine).'],
+ v:[{r:'R',a:[[0,30,'NH'],[1,330],[2,270,'NH₂⁺',2],[2,30,'NH₂']],cap:'protoniert: Guanidinium',st:1},{r:'R',a:[[0,30,'NH'],[1,330],[2,270,'NH',2],[2,30,'NH₂']],cap:'deprotoniert: Guanidin',st:0}]},
+{n:'Imidazol / Imidazolium',s:'His',aa:'H',pk:6.0,d:['Aromatischer 5-Ring mit zwei N (6 π-Elektronen); einziges AS-System mit pKa nahe dem physiologischen pH.','Protonierte Form (Imidazolium) ist positiv; neutrale Form kann Protonen aufnehmen und abgeben → Säure-Base-Katalyse, Puffer.','Zwei Tautomere (Nδ1–H oder Nε2–H); bindet Metallionen (Zn²⁺, Fe) z. B. in Carboanhydrase, Hämoglobin, katalytischer Triade.'],
+ v:[{r:'R',a:IMI('NH⁺'),c:[[5,1]],cap:'protoniert: Imidazolium',st:1},{r:'R',a:IMI('N'),c:[[5,1]],cap:'neutral: Imidazol',st:0}]},
+{n:'Amid',s:'Asn, Gln',aa:'NQ',d:['Planar durch partiellen C–N-Doppelbindungscharakter (Resonanz); Rotation gehemmt – gleiche Gruppe wie in der Peptidbindung.','Ungeladen, polar: NH₂ ist H-Brücken-Donor, C=O Akzeptor. Nicht ionisierbar im pH-Bereich 0–14.','Hydrolyse (Desamidierung) liefert Asp bzw. Glu; Asn trägt N-Glykane (Sequon N-X-S/T).'],
+ v:[{r:'R',a:[[0,30],[1,330,'O',2],[1,90,'NH₂']],cap:'Carbonsäureamid (Asn: R = CH₂, Gln: R = CH₂CH₂)'},{r:'Cα',a:[[0,30],[1,330,'O',2],[1,90,'NH'],[3,30,'Cα']],cap:'Peptidbindung'}]},
+{n:'Thiol (SH)',s:'Cys',aa:'C',pk:8.18,d:['pKa ≈ 8,3 (in Proteinen 3–9 je nach Umgebung): das Thiolat (S⁻) ist ein starkes Nukleophil.','Zwei Cys oxidieren zum Disulfid (Cystin): stabilisiert extrazelluläre Proteine (Insulin, Antikörper).','Bindet Metalle (Zinkfinger, Eisen-Schwefel-Cluster); Cys im Glutathion hält die Zelle reduziert.'],
+ v:[{r:'R',a:[[0,30,'SH']],cap:'Thiol',st:1},{r:'R',a:[[0,30,'S⁻']],cap:'Thiolat',st:0},{r:'R',a:[[0,30,'S'],[1,330,'S'],[2,30,'R']],cap:'Disulfid (Oxidation)'}]},
+{n:'Hydroxyl (OH)',s:'Ser, Thr, Tyr',aa:'STY',pk:10.07,d:['Ser/Thr: aliphatisches OH, pKa ≈ 13 → ungeladen; polar, H-Brücken-Donor und -Akzeptor. Der Schieberegler zeigt das phenolische OH des Tyr.','Tyr: Phenol, pKa ≈ 10,1; das Phenolat ist durch den Ring mesomeriestabilisiert.','Alle drei werden von Kinasen phosphoryliert (Signaltransduktion) und O-glykosyliert; Ser ist Nukleophil in Serinproteasen.'],
+ v:[{r:'Cα',a:[[0,90],[1,30,'OH']],cap:'Serin: primärer Alkohol'},{r:'Cα',a:[[0,90],[1,30,'OH'],[1,150]],cap:'Threonin: sekundärer Alkohol'},{r:'Cα',a:TY('OH'),c:PHC,cap:'Tyrosin: Phenol',st:1},{r:'Cα',a:TY('O⁻'),c:PHC,cap:'Tyrosin: Phenolat',st:0}]},
+{n:'Indol',s:'Trp',aa:'W',d:['Bicyclisch aromatisch: Benzolring + Pyrrolring (10 π-Elektronen); größte und unpolarste aromatische Seitenkette.','Das ringständige N–H ist H-Brücken-Donor, aber nicht ionisierbar (kein pKa im Wasserbereich); das N-Elektronenpaar gehört zum aromatischen System.','Absorbiert bei 280 nm (Proteinquantifizierung) und fluoresziert; sitzt oft an Membrangrenzflächen; Vorstufe von Serotonin und Melatonin.'],
+ v:[{r:'Cα',a:TRP,c:TRPC,cap:'Indolring des Tryptophans'}]}];
+let gi=0,gp=7;
+function grp(i){gi=i;const g=G[i];
+ $('#gl').innerHTML=G.map((x,j)=>`<button class="${j==i?'on':''}" onclick="grp(${j})">${x.n}<small>${x.s}</small></button>`).join('');
+ $('#gd').innerHTML=`<h2>${g.n}</h2><div class="vs">${g.v.map(v=>`<figure ${v.st==null?'':'data-st='+v.st}>${draw(v,{mh:190})}<figcaption>${v.cap}</figcaption></figure>`).join('')}</div>
+ ${g.pk?`<p style="margin:12px 0 2px"><label>pH <input type="range" min="0" max="14" step=".1" value="${gp}" oninput="gp=+this.value;gup()"></label></p><div id="gf"></div>`:''}
+ <ul>${g.d.map(x=>`<li>${x}</li>`).join('')}</ul>
+ <div>Kommt vor in: ${g.aa.split('').map(c=>{const k=A.findIndex(a=>a[2]==c);return `<a class="ch" href="#" onclick="go(${k});return false">${A[k][0]}</a>`}).join('')}</div>`;gup()}
+function gup(){const g=G[gi];if(!g.pk)return;const f=1/(1+10**(gp-g.pk));
+ $('#gf').innerHTML=`Bei pH ${fm(gp.toFixed(1))} (pKa ${fm(g.pk)}): <span class="big">${(f*100).toFixed(f>.99||f<.01?1:0).replace('.',',')} %</span> protoniert`;
+ document.querySelectorAll('#gd [data-st]').forEach(e=>e.style.opacity=.15+.85*(e.dataset.st==1?f:1-f))}
+
+// ---------- Tab Quiz ----------
+let Q={s:0,n:0,i:-1,done:0};
+function nq(){let i;do i=Math.random()*20|0;while(i==Q.i);Q.i=i;Q.done=0;const o=[i];while(o.length<4){const j=Math.random()*20|0;if(!o.includes(j))o.push(j)}o.sort(()=>Math.random()-.5);
+ $('#q').innerHTML=`<div class="fig">${draw(bb(A[i]),{mh:300})}</div><div class="opts">${o.map(j=>`<button data-j="${j}" onclick="ans(${j})">${A[j][0]}</button>`).join('')}</div><div id="fb"></div>`;
+ $('#sc').textContent=`${Q.s} / ${Q.n} richtig`}
+function ans(j){if(Q.done)return;Q.done=1;Q.n++;const a=A[Q.i];if(j==Q.i)Q.s++;
+ document.querySelectorAll('.opts button').forEach(b=>{if(+b.dataset.j==Q.i)b.classList.add('ok');else if(+b.dataset.j==j)b.classList.add('no')});
+ $('#fb').innerHTML=`<p><b>${a[0]}</b> (${a[1]}): ${CL[a[3]][0]}, ${hyd(a[5])}, ${a[4]?'aromatisch':'aliphatisch'}${a[8]!=null?', pKa R = '+fm(a[8]):''}.<br>${a[10]}</p><button class="btn" onclick="nq()">Nächste Frage</button>`;
+ $('#sc').textContent=`${Q.s} / ${Q.n} richtig`}
+
+// ---------- Navigation ----------
+function show(t){document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id==t));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==t))}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
+grid();det();grp(0);nq();
+</script></body></html>
