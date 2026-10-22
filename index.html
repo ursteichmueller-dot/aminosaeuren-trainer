@@ -38,22 +38,21 @@ figcaption{text-align:center;font-size:13px;color:var(--mu)}li{margin:4px 0}
 a.ch{display:inline-block;border:1px solid var(--bd);border-radius:14px;padding:1px 10px;margin:2px;color:var(--ac);text-decoration:none}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.opts button{background:var(--cd);border:1px solid var(--bd);border-radius:6px;padding:10px;cursor:pointer}
 .opts button.ok{background:#1c9a5a;color:#fff}.opts button.no{background:#c8382e;color:#fff}
+.chip{border:1px solid var(--bd);background:var(--cd);border-radius:14px;padding:1px 10px;margin:2px;cursor:pointer;font-size:13px}.chip.on{background:#ffb400;border-color:#ffb400;color:#1a1a1a}.chip.off{opacity:.65}
+.kg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:14px}.kcard{display:flex;flex-direction:column;gap:4px}details{margin:4px 0}summary{cursor:pointer;font-size:13px}
 </style></head><body>
 <header><h1>Aminosäuren-Trainer</h1>
-<nav><button data-t="A" class="on">Aminosäuren</button><button data-t="T">Tabelle</button><button data-t="G">Funktionelle Gruppen</button><button data-t="Q">Quiz</button></nav></header>
+<nav><button data-t="A" class="on">Aminosäuren</button><button data-t="K">Alle Gruppen</button></nav></header>
 <main>
 <section id="A" class="on"><div class="flt">
 <select id="f1"><option value="">Alle Klassen</option></select>
 <select id="f2"><option value="">Hydrophobie: alle</option><option>hydrophob</option><option>mittel / amphiphil</option><option>hydrophil</option></select>
 <select id="f3"><option value="">Aromatisch + aliphatisch</option><option value="1">nur aromatisch</option><option value="0">nur aliphatisch</option></select></div>
 <div class="two"><div class="grid" id="grid"></div><div class="panel" id="det"></div></div></section>
-<section id="T"><div class="panel" style="overflow:auto"><table id="tb"></table></div>
-<p class="mu">KD = Hydropathie-Index nach Kyte &amp; Doolittle (positiv = hydrophob). pKa-Werte nach Lehninger (25 °C, freie AS); in Proteinen verschieben sie sich je nach Umgebung. Klick auf eine Zeile öffnet die Struktur.</p></section>
-<section id="G"><div class="two" style="grid-template-columns:minmax(200px,.5fr) 2fr"><div class="gl" id="gl"></div><div class="panel" id="gd"></div></div></section>
-<section id="Q"><div class="panel" style="max-width:560px"><div class="row"><b>Welche Aminosäure ist das?</b><span id="sc" class="mu"></span></div><div id="q"></div></div></section>
+<section id="K"><div class="panel" id="kd"></div><div class="kg" id="kg"></div></section>
 </main>
 <script>
-const $=s=>document.querySelector(s),L=38;
+const $=s=>document.querySelector(s),L=44;
 const CL={u:['unpolar, aliphatisch','#6b7b8c'],a:['aromatisch','#8e4fc4'],p:['polar, ungeladen','#0f9a8f'],s:['sauer (negativ)','#d8402f'],b:['basisch (positiv)','#2a68d8']};
 const PH=[[0,90],[1,30],[2,-30,'',2],[3,30],[4,90,'',2],[5,150],[6,210,'',2]],PHC=[[7,2]];
 const TRP=[[0,90],[1,30],[2,336,'',2],[3,48,'NH'],[4,120],[5,192,'',2],[6,132],[7,72,'',2],[8,12],[9,312,'',2]],TRPC=[[10,5],[6,2]];
@@ -87,38 +86,77 @@ const chg=(a,h)=>{let c=1/(1+10**(h-a[7]))-1/(1+10**(a[6]-h));if(a[8]!=null)c+='
 
 // ---------- Strukturformel-Zeichner ----------
 function draw(s,o={}){
- const P=[[0,0]];s.a.forEach(([p,a])=>{const r=a*Math.PI/180;P.push([P[p][0]+L*Math.cos(r),P[p][1]+L*Math.sin(r)])});
- const pt=i=>i=='N'?[-L,0]:P[i];let g='',t='',all=[...P];
- const col=l=>/^[HN]/.test(l)?'#2a68d8':l[0]=='O'||l=='COOH'?'#d8402f':l[0]=='S'?'#b07d00':'currentColor';
+ const bbm=!!s.bb,mx=bbm&&o.D&&!o.W?-1:1,sg=bbm?-1:1,Nx=-L*mx;
+ const P=[[0,0]];s.a.forEach(([p,a])=>{const r=a*Math.PI/180;P.push([P[p][0]+mx*L*Math.cos(r),P[p][1]+sg*L*Math.sin(r)])});
+ const pt=i=>i=='N'?[Nx,0]:i=='C'?[-Nx,0]:P[i];let g='',t='',all=[...P],hs='';
+ const Hs=new Set(o.hl||[]);Hs.forEach(i=>{const q=pt(i),w=i=='N'?(o.zw?28:24):i=='C'?29:15,h=typeof i=='string'?16:15;hs+=`<ellipse cx="${q[0]}" cy="${q[1]}" rx="${w}" ry="${h}" style="fill:#ffb400;stroke:none"/>`});
+ s.a.forEach(([p],i)=>{if(Hs.has(i+1)&&Hs.has(p)){const a=P[p],b=P[i+1];hs+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" style="stroke:#ffb400;stroke-width:15;stroke-linecap:round"/>`}});
+ const col=l=>/^[HN⁺]/.test(l)?'#2a68d8':l[0]=='O'||l=='COOH'||l=='COO⁻'?'#d8402f':l[0]=='S'?'#b07d00':'currentColor';
  const tx=(p,l,c)=>t+=`<text x="${p[0]}" y="${p[1]}" fill="${c||col(l)}">${l}</text>`;
- const ln=(p,q,n)=>{const dx=q[0]-p[0],dy=q[1]-p[1],d=Math.hypot(dx,dy),nx=-dy/d*2.6,ny=dx/d*2.6;
+ const ln=(p,q,n,a=0,b=0)=>{if(n==3)return ln(p,q,1,a,b)+ln(p,q,2,a,b);const dx=q[0]-p[0],dy=q[1]-p[1],d=Math.hypot(dx,dy),nx=-dy/d*2.6,ny=dx/d*2.6;p=[p[0]+dx/d*a,p[1]+dy/d*a];q=[q[0]-dx/d*b,q[1]-dy/d*b];
   return n==2?`<line x1="${p[0]+nx}" y1="${p[1]+ny}" x2="${q[0]+nx}" y2="${q[1]+ny}"/><line x1="${p[0]-nx}" y1="${p[1]-ny}" x2="${q[0]-nx}" y2="${q[1]-ny}"/>`:`<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}"/>`};
  const wedge=(p,q)=>{const dx=q[0]-p[0],dy=q[1]-p[1],d=Math.hypot(dx,dy),nx=-dy/d*5,ny=dx/d*5;return `<polygon points="${p[0]},${p[1]} ${q[0]+nx},${q[1]+ny} ${q[0]-nx},${q[1]-ny}"/>`};
  const hash=(p,q)=>{let r='';const dx=q[0]-p[0],dy=q[1]-p[1],d=Math.hypot(dx,dy);for(let i=1;i<=6;i++){const u=i/6,x=p[0]+dx*u,y=p[1]+dy*u,nx=-dy/d*u*5,ny=dx/d*u*5;r+=`<line x1="${x-nx}" y1="${y-ny}" x2="${x+nx}" y2="${y+ny}" style="stroke-width:1.6"/>`}return r};
- s.a.forEach(([p,,,k],i)=>{if(!(s.bb&&i==0))g+=ln(P[p],P[i+1],k||1)});
- (s.c||[]).forEach(([i,j,k])=>g+=ln(pt(i),pt(j),k||1));
- s.a.forEach(([,,l],i)=>l&&tx(P[i+1],l));if(s.r)tx(P[0],s.r);
- if(s.bb){const N=[-L,0],C=[L,0],H=[0,-.8*L];all.push(N,C,H);g+=ln(P[0],N,1)+ln(P[0],C,1);
-  if(!s.a.length){const H2=[0,.8*L];all.push(H2);g+=ln(P[0],H,1)+ln(P[0],H2,1);tx(H2,'H','currentColor')}
-  else g+=o.D?wedge(P[0],P[1])+hash(P[0],H):hash(P[0],P[1])+wedge(P[0],H);
-  tx(N,s.pro?'HN':'H₂N');tx(C,'COOH');tx(H,'H','currentColor')}
- const xs=all.map(p=>p[0]),ys=all.map(p=>p[1]),x0=Math.min(...xs)-34,y0=Math.min(...ys)-26,w=Math.max(...xs)+34-x0,h=Math.max(...ys)+26-y0;
- return `<svg viewBox="${x0} ${y0} ${w} ${h}" style="max-width:${Math.min(w*1.6,520)}px;max-height:${o.mh||340}px">${g}${t}</svg>`}
+ // Ringatome und implizite C-Beschriftung (CH₂, CH₃ …) nur in der Kreuz-Darstellung
+ const ring=new Set();(s.c||[]).forEach(([i,j])=>{let x=i;const st=j=='N'?0:j;while(x!=st&&x>0){ring.add(x);x=s.a[x-1][0]}if(st>0)ring.add(st)});
+ const deg=i=>{let d=s.a[i-1][3]||1;s.a.forEach(([p,,,k])=>{if(p==i)d+=k||1});(s.c||[]).forEach(([x,y,k])=>{if(x==i||y==i)d+=k||1});return d};
+ const lb=s.a.map(([,,l],i)=>l||(bbm&&!o.W&&!ring.has(i+1)?(h=>'C'+(h?'H'+(h>1?'₀₁₂₃'[h]:''):''))(4-deg(i+1)):''));
+ const sl=l=>l?10+3.2*l.length:0,nl=o.zw?(s.pro?'⁺H₂N':'⁺H₃N'):(s.pro?'HN':'H₂N'),cl=o.zw?'COO⁻':'COOH';
+ s.a.forEach(([p,,,k],i)=>{if(!(bbm&&i==0))g+=ln(P[p],P[i+1],k||1,p>0?sl(lb[p-1]):0,sl(lb[i]))});
+ (s.c||[]).forEach(([i,j,k])=>g+=ln(pt(i),pt(j),k||1,sl(lb[i-1]),j=='N'?12:sl(lb[j-1])));
+ lb.forEach((l,i)=>l&&tx(P[i+1],l));if(s.r)tx(P[0],s.r);
+ if(bbm){const N=[Nx,0],C=[-Nx,0],H=[0,.8*L];all.push(N,C,H);g+=ln(P[0],N,1,0,sl(nl))+ln(P[0],C,1,0,sl(cl));
+  if(!s.a.length){const H2=[0,-.8*L];all.push(H2);g+=ln(P[0],H,1,0,13)+ln(P[0],H2,1,0,13);tx(H2,'H','currentColor')}
+  else if(o.W)g+=o.D?hash(P[0],P[1])+wedge(P[0],H):wedge(P[0],P[1])+hash(P[0],H);
+  else g+=ln(P[0],P[1],1,0,sl(lb[0]))+ln(P[0],H,1,0,13);
+  tx(N,nl);tx(C,cl);tx(H,'H','currentColor')}
+ const xs=all.map(p=>p[0]),ys=all.map(p=>p[1]),x0=Math.min(...xs)-36,y0=Math.min(...ys)-26,w=Math.max(...xs)+36-x0,h=Math.max(...ys)+26-y0;
+ return `<svg viewBox="${x0} ${y0} ${w} ${h}" style="max-width:${Math.min(w*1.6,520)}px;max-height:${o.mh||340}px">${hs?`<g style="opacity:.5">${hs}</g>`:''}${g}${t}</svg>`}
 const bb=a=>({a:a[11],c:a[12],bb:1,pro:a[2]=='P'});
+// ---------- Funktionelle Gruppen (Katalog) ----------
+const F=(k,n,a,s,d,c,x)=>({k,n,a,s,d,c:c||[],x});
+const FG=[
+F('alk','Alkohol',[[0,330,'OH']],'R–OH','Polar, H-Brücken-Donor und -Akzeptor; in Ser, Thr (aliphatisch) und Tyr (phenolisch).'),
+F('ald','Aldehyd',[[0,330],[1,270,'O',2],[1,30,'H']],'R–CHO','Reaktives Carbonyl, oxidierbar zur Carbonsäure (z. B. Aldosen); in den 20 AS nicht enthalten.'),
+F('cooh','Carbonsäure',[[0,330],[1,270,'O',2],[1,30,'OH']],'R–COOH','pKa ≈ 2–4, deprotoniert als Carboxylat (−). In jeder AS (α-COOH), zusätzlich in Asp und Glu.'),
+F('ket','Keton',[[0,330],[1,270,'O',2],[1,30]],'R–CO–R','Polares Carbonyl ohne H-Donor (Ketosen, Ketokörper); nicht in den 20 AS, aber in ihren Abbauprodukten (α-Ketosäuren).'),
+F('est','Ester',[[0,330],[1,270,'O',2],[1,30,'O'],[3,330]],'R–CO–O–R','Säure + Alkohol; in Lipiden und aminoacyl-tRNA, hydrolyseempfindlich; nicht in den 20 AS.'),
+F('cbm','Carbamat',[[0,30,'N'],[1,90],[1,330],[3,270,'O',2],[3,30,'O'],[5,330]],'R₂N–CO–O–R','Amid + Ester der Kohlensäure; Schutzgruppen (Boc, Fmoc, Cbz) der Peptidsynthese; nicht in den 20 AS.'),
+F('cbn','Carbonat',[[0,30,'O'],[1,330],[2,270,'O',2],[2,30,'O'],[4,330]],'RO–CO–OR','Diester der Kohlensäure (Lösungsmittel, Polycarbonate); nicht in den 20 AS.'),
+F('eth','Ether',[[0,30,'O'],[1,330]],'R–O–R','Wenig reaktiv, H-Akzeptor; glykosidische Bindungen; nicht in den 20 AS.'),
+F('per','Peroxid',[[0,30,'O'],[1,330,'O'],[2,30]],'R–O–O–R','Schwache O–O-Bindung, bildet leicht Radikale (oxidativer Stress); nicht in den 20 AS.'),
+F('ami','Amin',[[0,330,'NH₂']],'R–NH₂','Basisch (pKa ≈ 9–11), protoniert als Ammonium (+). In jeder AS (α-NH₂), Lys (ε-NH₂); Pro hat ein sekundäres Amin.'),
+F('nit','Nitro',[[0,330,'NO₂']],'R–NO₂','Stark elektronenziehend; z. B. Nitrotyrosin als oxidative Modifikation; nicht in den 20 AS.'),
+F('amd','Amid',[[0,330],[1,270,'O',2],[1,30,'NH'],[3,330]],'R–CO–NH–R','Planar, ungeladen, H-Donor und -Akzeptor; Peptidbindung; Seitenkette von Asn und Gln.'),
+F('ntr','Nitril',[[0,330,'C'],[1,330,'N',3]],'R–C≡N','Linear, polar; hydrolysiert zu Amid/Carbonsäure; nicht in den 20 AS.'),
+F('thi','Thiol',[[0,330,'SH']],'R–SH','pKa ≈ 8; Thiolat stark nukleophil, oxidiert zum Disulfid. Cystein.'),
+F('sul','Sulfid',[[0,30,'S'],[1,330]],'R–S–R (Thioether)','Unpolar, kaum reaktiv; Methionin.'),
+F('dis','Disulfid',[[0,30,'S'],[1,330,'S'],[2,30]],'R–S–S–R','Kovalente Brücke (Cystin) aus zwei Cys; nur in Proteinen, nicht in der freien AS.'),
+F('sfn','Sulfon',[[0,330,'S'],[1,240,'O',2],[1,300,'O',2],[1,30]],'R–SO₂–R','Stark polarer, oxidierter Schwefel (z. B. Methioninsulfon); nicht in den 20 AS.'),
+F('F','Fluor',[[0,330,'F']],'R–F','Stärkste C–X-Bindung, in der Natur selten; fluorierte AS dienen als Sonden; nicht in den 20 AS.'),
+F('Cl','Chlor',[[0,330,'Cl']],'R–Cl','Elektronegativ, lipophil; z. B. in Vancomycin; nicht in den 20 AS.'),
+F('Br','Brom',[[0,330,'Br']],'R–Br','Bromtyrosin in Meeresnaturstoffen; nicht in den 20 AS.'),
+F('I','Iod',[[0,330,'I']],'R–I','Iodtyrosine und Thyroxin (Schilddrüsenhormone aus Tyr); nicht in den 20 AS.'),
+F('gua','Guanidinium',[[0,30,'NH'],[1,330],[2,270,'NH₂⁺',2],[2,30,'NH₂']],'Arg-Seitenkette','Positive Ladung über drei N delokalisiert, pKa ≈ 12,5; Salzbrücken zu Phosphat/Carboxylat.',[],1),
+F('imi','Imidazol',IMI('N'),'His-Seitenkette','Aromatischer 5-Ring, pKa ≈ 6; Säure-Base-Katalyse, Puffer, Metallbindung.',[[5,1]],1),
+F('ind','Indol',TRP,'Trp-Seitenkette','Bicyclisch aromatisch, UV 280 nm, N–H als H-Donor; unpolarste aromatische Seitenkette.',TRPC,1),
+F('aro','Phenyl (Aromat)',PH,'Phe-/Tyr-Seitenkette','Unpolarer aromatischer Ring (6 π-Elektronen); hydrophobe Wechselwirkungen, π-Stapelung.',PHC,1)];
+const HLM={S:{alk:[1,2]},T:{alk:[1,2]},C:{thi:[1,2]},Y:{alk:[5,8],aro:[2,3,4,5,6,7]},F:{aro:[2,3,4,5,6,7]},M:{sul:[2,3,4]},N:{amd:[2,3,4]},Q:{amd:[3,4,5]},D:{cooh:[2,3,4]},E:{cooh:[3,4,5]},K:{ami:[4,5]},R:{gua:[4,5,6,7]},H:{imi:[2,3,4,5,6]},W:{ind:[2,3,4,5,6,7,8,9,10]}};
+const hl=(c,k)=>[...(k=='ami'?['N']:[]),...(k=='cooh'?['C']:[]),...((HLM[c]||{})[k]||[])];
 
 // ---------- Tab Aminosäuren ----------
-let sel=0,D=0,pH=7;
+let sel=0,D=0,pH=7,hg=null,kc=0,fs=0,kw=0,zw=1;
 Object.values(CL).forEach((v,i)=>$('#f1').add(new Option(v[0],Object.keys(CL)[i])));
 function grid(){const f=[$('#f1').value,$('#f2').value,$('#f3').value];
- $('#grid').innerHTML=A.map((a,i)=>{const ok=(!f[0]||a[3]==f[0])&&(!f[1]||hyd(a[5])==f[1])&&(f[2]===''||a[4]==f[2]);
+ $('#grid').innerHTML=A.map((a,i)=>{const ok=(!f[0]||a[3]==f[0])&&(!f[1]||hyd(a[5])==f[1])&&(f[2]===''||a[4]==f[2])&&(!hg||hl(a[2],hg).length>0);
   return `<button class="card${i==sel?' sel':''}" style="border-left-color:${CL[a[3]][1]};opacity:${ok?1:.22}" onclick="sel=${i};D=0;grid();det()"><b>${a[0]}</b><small>${a[1]} · ${a[2]}</small></button>`}).join('')}
 ['f1','f2','f3'].forEach(i=>$('#'+i).onchange=grid);
 function upd(){const a=A[sel],c=chg(a,pH);$('#chg').innerHTML=`Nettoladung bei pH ${fm(pH.toFixed(1))}: <span class="big" style="color:${c>.1?'#2a68d8':c<-.1?'#d8402f':'inherit'}">${c>0?'+':''}${fm(c.toFixed(2))}</span> <span class="mu">(pI = ${fm(a[9])}: dort ≈ 0)</span>`}
-function det(){const a=A[sel],k=CL[a[3]];
+function det(){const a=A[sel],k=CL[a[3]],H=hg?hl(a[2],hg):[];
  $('#det').innerHTML=`<h2 style="border-left:6px solid ${k[1]};padding-left:10px">${a[0]} <small>${a[1]} · ${a[2]}</small></h2>
- <div class="fig">${draw(bb(a),{D})}</div>
- <div class="row"><button class="btn" onclick="D=1-D;det()">${D?'D':'L'}-Form → ${D?'L':'D'}-Form zeigen</button><span>${D?'D':'L'}-${a[0]}: <b>${stc(a[2],D)}</b></span></div>
- <p class="mu">Keil = zum Betrachter, gestrichelt = vom Betrachter weg. L-Form: H auf dem Keil, wenn H₂N links, COOH rechts und R unten stehen. Cβ-Stereozentren (Ile, Thr) sind hier nicht eingezeichnet.</p>
+ <div class="fig row" style="align-items:flex-start;justify-content:center">${[['Kreuz-Darstellung (Lehrbuch)',draw(bb(a),{D,zw,hl:H})],kw?['Keilstrich-Darstellung',draw(bb(a),{D,zw,W:1,hl:H})]:0,fs?['Fischer-Projektion',fisch(a,D,H,zw)]:0].filter(Boolean).map(x=>`<div style="flex:1 1 200px">${x[1]}<div class="mu" style="text-align:center">${x[0]}</div></div>`).join('')}</div>
+ ${chips(a)}<div class="row"><button class="btn" onclick="D=1-D;det()">${D?'D':'L'}-Form → ${D?'L':'D'}-Form zeigen</button><button class="btn" onclick="kw=1-kw;det()">Keilstrich ${kw?'ausblenden':'einblenden'}</button><button class="btn" onclick="fs=1-fs;det()">Fischer ${fs?'ausblenden':'einblenden'}</button><button class="btn" onclick="zw=1-zw;det()">${zw?'Neutrale Form':'Zwitterion'}</button><span>${D?'D':'L'}-${a[0]}: <b>${stc(a[2],D)}</b></span></div>
+ <p class="mu">Kreuz-Darstellung: flache Lehrbuchform ohne Stereoinformation (als L-Form zu lesen; bei D gespiegelt). Keilstrich: Keil = zum Betrachter, gestrichelt = vom Betrachter weg; L-Form: R auf dem Keil, H gestrichelt.${fs?' Fischer: waagerechte Bindungen zeigen zum Betrachter, senkrechte weg; COOH oben, R unten; L: H₂N links, D: H₂N rechts.':''} Bei Ile und Thr ist nur das Cα-Zentrum gezeichnet.</p>
  <span class="tag" style="background:${k[1]}">${k[0]}</span><span class="tag">${hyd(a[5])}</span><span class="tag">${a[4]?'aromatisch':'aliphatisch'}</span>
  <div class="kd"><i style="left:calc(${(a[5]+4.5)/9*100}% - 2px)"></i></div><div class="kdl"><span>hydrophil −4,5</span><span>KD = ${fm(a[5])}</span><span>+4,5 hydrophob</span></div>
  <table class="pk" style="margin-top:10px"><tr><td>pKa α-COOH</td><td>${fm(a[6])}</td></tr><tr><td>pKa α-NH₃⁺</td><td>${fm(a[7])}</td></tr>
@@ -126,49 +164,33 @@ function det(){const a=A[sel],k=CL[a[3]];
  <p style="margin:10px 0 2px"><label>pH <input type="range" min="0" max="14" step=".1" value="${pH}" oninput="pH=+this.value;upd()"></label></p><div id="chg"></div>
  <p>${a[10]}</p>`;upd()}
 
-// ---------- Tab Tabelle ----------
-$('#tb').innerHTML='<thead><tr><th>Name</th><th>3/1</th><th>Klasse</th><th>Hydrophobie</th><th>Ring</th><th>KD</th><th>pKa COOH</th><th>pKa NH₃⁺</th><th>pKa R</th><th>pI</th></tr></thead><tbody>'+
- A.map((a,i)=>`<tr onclick="go(${i})"><td style="border-left:6px solid ${CL[a[3]][1]}"><b>${a[0]}</b></td><td>${a[1]} / ${a[2]}</td><td>${CL[a[3]][0]}</td><td>${hyd(a[5])}</td><td>${a[4]?'aromatisch':'aliphatisch'}</td><td>${fm(a[5])}</td><td>${fm(a[6])}</td><td>${fm(a[7])}</td><td>${a[8]!=null?fm(a[8]):'–'}</td><td>${fm(a[9])}</td></tr>`).join('')+'</tbody>';
+// ---------- Navigation zu einer Aminosäure ----------
 function go(i){sel=i;D=0;show('A');grid();det()}
 
-// ---------- Tab Funktionelle Gruppen ----------
-const TY=l=>PH.concat([[5,30,l]]);
-const G=[
-{n:'Guanidinium',s:'Arg',aa:'R',pk:12.48,d:['Positive Ladung über drei N und das zentrale C delokalisiert (Resonanz); planar, Y-förmig.','pKa ≈ 12,5: bei jedem physiologischen pH protoniert (+).','Bis zu fünf H-Brücken-Donoren: bindet Phosphat und Carboxylat (Salzbrücken, DNA/RNA, Phosphoproteine).'],
- v:[{r:'R',a:[[0,30,'NH'],[1,330],[2,270,'NH₂⁺',2],[2,30,'NH₂']],cap:'protoniert: Guanidinium',st:1},{r:'R',a:[[0,30,'NH'],[1,330],[2,270,'NH',2],[2,30,'NH₂']],cap:'deprotoniert: Guanidin',st:0}]},
-{n:'Imidazol / Imidazolium',s:'His',aa:'H',pk:6.0,d:['Aromatischer 5-Ring mit zwei N (6 π-Elektronen); einziges AS-System mit pKa nahe dem physiologischen pH.','Protonierte Form (Imidazolium) ist positiv; neutrale Form kann Protonen aufnehmen und abgeben → Säure-Base-Katalyse, Puffer.','Zwei Tautomere (Nδ1–H oder Nε2–H); bindet Metallionen (Zn²⁺, Fe) z. B. in Carboanhydrase, Hämoglobin, katalytischer Triade.'],
- v:[{r:'R',a:IMI('NH⁺'),c:[[5,1]],cap:'protoniert: Imidazolium',st:1},{r:'R',a:IMI('N'),c:[[5,1]],cap:'neutral: Imidazol',st:0}]},
-{n:'Amid',s:'Asn, Gln',aa:'NQ',d:['Planar durch partiellen C–N-Doppelbindungscharakter (Resonanz); Rotation gehemmt – gleiche Gruppe wie in der Peptidbindung.','Ungeladen, polar: NH₂ ist H-Brücken-Donor, C=O Akzeptor. Nicht ionisierbar im pH-Bereich 0–14.','Hydrolyse (Desamidierung) liefert Asp bzw. Glu; Asn trägt N-Glykane (Sequon N-X-S/T).'],
- v:[{r:'R',a:[[0,30],[1,330,'O',2],[1,90,'NH₂']],cap:'Carbonsäureamid (Asn: R = CH₂, Gln: R = CH₂CH₂)'},{r:'Cα',a:[[0,30],[1,330,'O',2],[1,90,'NH'],[3,30,'Cα']],cap:'Peptidbindung'}]},
-{n:'Thiol (SH)',s:'Cys',aa:'C',pk:8.18,d:['pKa ≈ 8,3 (in Proteinen 3–9 je nach Umgebung): das Thiolat (S⁻) ist ein starkes Nukleophil.','Zwei Cys oxidieren zum Disulfid (Cystin): stabilisiert extrazelluläre Proteine (Insulin, Antikörper).','Bindet Metalle (Zinkfinger, Eisen-Schwefel-Cluster); Cys im Glutathion hält die Zelle reduziert.'],
- v:[{r:'R',a:[[0,30,'SH']],cap:'Thiol',st:1},{r:'R',a:[[0,30,'S⁻']],cap:'Thiolat',st:0},{r:'R',a:[[0,30,'S'],[1,330,'S'],[2,30,'R']],cap:'Disulfid (Oxidation)'}]},
-{n:'Hydroxyl (OH)',s:'Ser, Thr, Tyr',aa:'STY',pk:10.07,d:['Ser/Thr: aliphatisches OH, pKa ≈ 13 → ungeladen; polar, H-Brücken-Donor und -Akzeptor. Der Schieberegler zeigt das phenolische OH des Tyr.','Tyr: Phenol, pKa ≈ 10,1; das Phenolat ist durch den Ring mesomeriestabilisiert.','Alle drei werden von Kinasen phosphoryliert (Signaltransduktion) und O-glykosyliert; Ser ist Nukleophil in Serinproteasen.'],
- v:[{r:'Cα',a:[[0,90],[1,30,'OH']],cap:'Serin: primärer Alkohol'},{r:'Cα',a:[[0,90],[1,30,'OH'],[1,150]],cap:'Threonin: sekundärer Alkohol'},{r:'Cα',a:TY('OH'),c:PHC,cap:'Tyrosin: Phenol',st:1},{r:'Cα',a:TY('O⁻'),c:PHC,cap:'Tyrosin: Phenolat',st:0}]},
-{n:'Indol',s:'Trp',aa:'W',d:['Bicyclisch aromatisch: Benzolring + Pyrrolring (10 π-Elektronen); größte und unpolarste aromatische Seitenkette.','Das ringständige N–H ist H-Brücken-Donor, aber nicht ionisierbar (kein pKa im Wasserbereich); das N-Elektronenpaar gehört zum aromatischen System.','Absorbiert bei 280 nm (Proteinquantifizierung) und fluoresziert; sitzt oft an Membrangrenzflächen; Vorstufe von Serotonin und Melatonin.'],
- v:[{r:'Cα',a:TRP,c:TRPC,cap:'Indolring des Tryptophans'}]}];
-let gi=0,gp=7;
-function grp(i){gi=i;const g=G[i];
- $('#gl').innerHTML=G.map((x,j)=>`<button class="${j==i?'on':''}" onclick="grp(${j})">${x.n}<small>${x.s}</small></button>`).join('');
- $('#gd').innerHTML=`<h2>${g.n}</h2><div class="vs">${g.v.map(v=>`<figure ${v.st==null?'':'data-st='+v.st}>${draw(v,{mh:190})}<figcaption>${v.cap}</figcaption></figure>`).join('')}</div>
- ${g.pk?`<p style="margin:12px 0 2px"><label>pH <input type="range" min="0" max="14" step=".1" value="${gp}" oninput="gp=+this.value;gup()"></label></p><div id="gf"></div>`:''}
- <ul>${g.d.map(x=>`<li>${x}</li>`).join('')}</ul>
- <div>Kommt vor in: ${g.aa.split('').map(c=>{const k=A.findIndex(a=>a[2]==c);return `<a class="ch" href="#" onclick="go(${k});return false">${A[k][0]}</a>`}).join('')}</div>`;gup()}
-function gup(){const g=G[gi];if(!g.pk)return;const f=1/(1+10**(gp-g.pk));
- $('#gf').innerHTML=`Bei pH ${fm(gp.toFixed(1))} (pKa ${fm(g.pk)}): <span class="big">${(f*100).toFixed(f>.99||f<.01?1:0).replace('.',',')} %</span> protoniert`;
- document.querySelectorAll('#gd [data-st]').forEach(e=>e.style.opacity=.15+.85*(e.dataset.st==1?f:1-f))}
+// ---------- Fischer-Projektion ----------
+const FS={G:'H',A:'CH₃',V:'CH(CH₃)₂',L:'CH₂CH(CH₃)₂',I:'CH(CH₃)CH₂CH₃',P:'CH₂CH₂CH₂',M:'CH₂CH₂SCH₃',F:'CH₂–C₆H₅',W:'CH₂–Indol',S:'CH₂OH',T:'CH(OH)CH₃',C:'CH₂SH',Y:'CH₂–C₆H₄–OH',N:'CH₂CONH₂',Q:'CH₂CH₂CONH₂',D:'CH₂COOH',E:'CH₂CH₂COOH',K:'(CH₂)₄NH₂',R:'(CH₂)₃NHC(=NH)NH₂',H:'CH₂–Imidazol'};
+function fisch(a,D,h,zw){
+ const c=a[2],r=FS[c],u=L*1.1,w=Math.max(80,r.length*5+12),hs=new Set(h||[]),nx=D?u:-u,hx=-nx,pro=c=='P';
+ let b='';if(hs.has('N'))b+=`<ellipse cx="${nx}" cy="0" rx="24" ry="16"/>`;if(hs.has('C'))b+=`<ellipse cx="0" cy="${-u}" rx="29" ry="16"/>`;
+ if([...hs].some(x=>typeof x=='number'))b+=`<ellipse cx="0" cy="${u}" rx="${r.length*4.8+10}" ry="16"/>`;
+ return `<svg viewBox="${-w} ${-u-26} ${2*w} ${2*u+26+(pro?54:36)}" style="max-width:${Math.min(2*w*1.5,300)}px;max-height:300px">
+ <g style="opacity:.5;fill:#ffb400;stroke:none">${b}</g><line x1="0" y1="${-u}" x2="0" y2="${u}"/><line x1="${-u}" y1="0" x2="${u}" y2="0"/>
+ ${pro?`<path d="M${nx},14 V${u+24} H0 V${u+11}" fill="none" stroke="currentColor" stroke-width="2"/>`:''}
+ <text x="0" y="${-u}" fill="#d8402f">${zw?'COO⁻':'COOH'}</text><text x="${nx}" y="0" fill="#2a68d8">${zw?(pro?'⁺H₂N':'⁺H₃N'):(pro?'HN':'H₂N')}</text><text x="${hx}" y="0" fill="currentColor">H</text><text x="0" y="${u}" fill="currentColor">${r}</text></svg>`}
 
-// ---------- Tab Quiz ----------
-let Q={s:0,n:0,i:-1,done:0};
-function nq(){let i;do i=Math.random()*20|0;while(i==Q.i);Q.i=i;Q.done=0;const o=[i];while(o.length<4){const j=Math.random()*20|0;if(!o.includes(j))o.push(j)}o.sort(()=>Math.random()-.5);
- $('#q').innerHTML=`<div class="fig">${draw(bb(A[i]),{mh:300})}</div><div class="opts">${o.map(j=>`<button data-j="${j}" onclick="ans(${j})">${A[j][0]}</button>`).join('')}</div><div id="fb"></div>`;
- $('#sc').textContent=`${Q.s} / ${Q.n} richtig`}
-function ans(j){if(Q.done)return;Q.done=1;Q.n++;const a=A[Q.i];if(j==Q.i)Q.s++;
- document.querySelectorAll('.opts button').forEach(b=>{if(+b.dataset.j==Q.i)b.classList.add('ok');else if(+b.dataset.j==j)b.classList.add('no')});
- $('#fb').innerHTML=`<p><b>${a[0]}</b> (${a[1]}): ${CL[a[3]][0]}, ${hyd(a[5])}, ${a[4]?'aromatisch':'aliphatisch'}${a[8]!=null?', pKa R = '+fm(a[8]):''}.<br>${a[10]}</p><button class="btn" onclick="nq()">Nächste Frage</button>`;
- $('#sc').textContent=`${Q.s} / ${Q.n} richtig`}
+// ---------- Markierung & Katalog ----------
+function chips(a){const c=f=>`<button class="chip${hl(a[2],f.k).length?'':' off'}${hg==f.k?' on':''}" onclick="pick('${f.k}')">${f.n}</button>`;
+ const y=FG.filter(f=>hl(a[2],f.k).length),n=FG.filter(f=>!hl(a[2],f.k).length),f=FG.find(x=>x.k==hg),miss=f&&!hl(a[2],hg).length;
+ return `<div><b style="font-size:13px">Funktionelle Gruppe markieren (nochmal klicken = aus):</b><br>${y.map(c).join('')}<details${miss?' open':''}><summary class="mu">weitere Gruppen (in ${a[0]} nicht enthalten)</summary>${n.map(c).join('')}</details>${f?`<p class="mu"><b>${f.n}</b> (${f.s}): ${f.d}${miss?`<br><i>Kommt in ${a[0]} nicht vor.</i>`:''}</p>`:''}</div>`}
+function pick(k){hg=hg==k?null:k;grid();det()}
+function kat(){
+ $('#kg').innerHTML=FG.map((f,i)=>`<button class="card kcard${i==kc?' sel':''}" style="border-left-color:${f.x?'#ffb400':'var(--bd)'}" onclick="kc=${i};kat();scrollTo(0,0)"><b>${f.n}</b>${draw(f,{mh:90})}</button>`).join('');
+ const f=FG[kc],w=A.map((a,i)=>hl(a[2],f.k).length?i:-1).filter(i=>i>=0);
+ $('#kd').innerHTML=`<div class="row" style="align-items:flex-start"><div class="fig" style="flex:1 1 200px">${draw(f,{mh:190})}</div><div style="flex:2 1 280px"><h2>${f.n} <small>${f.s}</small></h2><p>${f.d}</p><p>${w.length?'Kommt vor in: '+w.map(i=>`<a class="ch" href="#" onclick="hg='${f.k}';go(${i});return false">${A[i][0]}</a>`).join(''):'<i>Kommt in keiner der 20 proteinogenen Aminosäuren vor.</i>'}</p>${w.length?`<button class="btn" onclick="markAll('${f.k}')">In den Aminosäuren markieren</button>`:''}${f.x?'<p class="mu">Zusätzlich wichtige Gruppe der Seitenketten (nicht in der Übersichtsgrafik).</p>':''}</div></div>`}
+function markAll(k){hg=k;const i=A.findIndex(a=>hl(a[2],k).length);if(i>=0)sel=i;D=0;show('A');grid();det()}
 
 // ---------- Navigation ----------
 function show(t){document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id==t));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==t))}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
-grid();det();grp(0);nq();
+grid();det();kat();
 </script></body></html>
